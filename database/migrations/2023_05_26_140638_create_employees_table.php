@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->date('joining_date');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

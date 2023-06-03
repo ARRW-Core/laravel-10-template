@@ -25,6 +25,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             //drop user_role_id
             $table->dropForeign(['user_role_id']);
+            // drop column
+            $table->dropColumn('user_role_id');
         });
     }
 };
