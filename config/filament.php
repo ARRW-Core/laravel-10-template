@@ -25,7 +25,7 @@ return [
     |
     */
 
-    'path' => env('FILAMENT_PATH', 'admin'),
+    'path' => env('FILAMENT_PATH', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -105,7 +105,7 @@ return [
         'namespace' => 'App\\Filament\\Pages',
         'path' => app_path('Filament/Pages'),
         'register' => [
-            Pages\Dashboard::class,
+//            Pages\Dashboard::class,
         ],
     ],
 
@@ -315,8 +315,9 @@ return [
     */
 
     'middleware' => [
-        'auth' => [
+        "auth" => [
             Authenticate::class,
+//            'verified'
         ],
         'base' => [
             EncryptCookies::class,
