@@ -3,10 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
-use App\Models\Role;
 use App\Models\User;
-use Barryvdh\Debugbar\Facades\Debugbar;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -21,8 +18,6 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-
-
 
     public static function form(Form $form): Form
     {
@@ -42,26 +37,18 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Select::make('roles')
                     ->relationship('roles', 'name', function () {
-                        if (auth()->user()?->hasRole('super-admin')) {
-                            return Role::withoutTrashed()->where('name', '!=', 'super-admin');
-                        }
-                        return Role::withoutTrashed()->where('name', '!=', 'super-admin')->where('name', '!=', 'admin');
+
+                        //TODO
+//                        if (auth()->user()?->hasRole('super-admin')) {
+//                            return Role::withoutTrashed()->where('name', '!=', 'super-admin');
+//                        }
+//                        return Role::withoutTrashed()->where('name', '!=', 'super-admin')->where('name', '!=', 'admin');
                     })
                     ->multiple()
                     ->preload()
                     ->required(),
             ]);
     }
-
-//    protected static function getRoles() : array
-//    {
-//        if (auth()->user()->hasRole('super-admin')) {
-//            return Role::all()->pluck('name', 'id')->toArray();
-//        }
-////
-//        return Role::where('name', '!=', 'super-admin')->where('name', '!=', 'admin')->get()->pluck('name', 'id')->toArray();
-////        return [];
-//    }
 
     public static function table(Table $table): Table
     {
@@ -77,7 +64,7 @@ class UserResource extends Resource
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
-                    ->visible(auth()->user()->hasRole('super-admin')),
+                    ->visible(auth()->user()?->hasRole('super-admin')),
             ])
 
             ->actions([
@@ -105,7 +92,7 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
 
-        if (auth()->user()->hasRole('super-admin')) {
+        if (auth()->user()?->hasRole('super-admin')) {
             return parent::getEloquentQuery()
                 ->withoutGlobalScopes([
                     SoftDeletingScope::class,
