@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Role;
 use App\Models\User;
+use Barryvdh\Debugbar\Facades\Debugbar;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -12,6 +14,7 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class UserResource extends Resource
 {
@@ -38,10 +41,23 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('roles')
-                    ->relationship('roles', 'name')
+                    ->options(
+                        self::getRoles()
+                    )
                     ->multiple()
                     ->required(),
             ]);
+    }
+
+    protected static function getRoles() : array
+    {
+        if (auth()->user()->hasRole('super-admin')) {
+            return Role::all()->pluck('name', 'id')->toArray();
+        }
+        else {
+            return Role::where('name', '!=', 'super-admin')->where('name', '!=', 'admin')->get()->pluck('name', 'id')->toArray();
+        }
+
     }
 
     public static function table(Table $table): Table
@@ -60,10 +76,9 @@ class UserResource extends Resource
                     ->dateTime()
                     ->visible(auth()->user()->hasRole('super-admin')),
             ])
-            ->filters([
-                Tables\Filters\TrashedFilter::make()->visible(auth()->user()->hasRole('super-admin')),
-            ])
+
             ->actions([
+                Impersonate::make(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -86,26 +101,19 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-//        if (auth()->user()->hasRole('super-admin')) {
-//            return parent::getEloquentQuery();
-//        }
-//        else if (auth()->user()->hasRole(['admin'])) {
-//            return parent::getEloquentQuery()
-//                ->withoutGlobalScopes([
-//                    SoftDeletingScope::class,
-//                ])->with('roles')->whereHas('roles', function ($query) {
-//                    $query->where('name', '!=', 'super-admin');
-//                });
-//        }
-//        else {
-//            return parent::getEloquentQuery()
-//                ->withoutGlobalScopes([
-//                    SoftDeletingScope::class,
-//                ])->where('id', '!=' , 1);
-//        }
+
+        if (auth()->user()->hasRole('super-admin')) {
+            return parent::getEloquentQuery()
+                ->withoutGlobalScopes([
+                    SoftDeletingScope::class,
+                ]);
+        }
+        else {
+//            return parent::getEloquentQuery()->withoutGlobalScopes([
+//                SoftDeletingScope::class,
+//            ])->where('id', '!=', 1);
+            Debugbar::info(User::role('admin'));
+            return User::role('user');
+        }
     }
 }
