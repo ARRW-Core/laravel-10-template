@@ -10,8 +10,4 @@ class Role extends ModelsRole
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'name',
-        'guard_name',
-    ];
 }

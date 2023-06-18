@@ -20,7 +20,7 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
 
 
@@ -41,24 +41,27 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('roles')
-                    ->options(
-                        self::getRoles()
-                    )
+                    ->relationship('roles', 'name', function () {
+                        if (auth()->user()?->hasRole('super-admin')) {
+                            return Role::withoutTrashed()->where('name', '!=', 'super-admin');
+                        }
+                        return Role::withoutTrashed()->where('name', '!=', 'super-admin')->where('name', '!=', 'admin');
+                    })
                     ->multiple()
+                    ->preload()
                     ->required(),
             ]);
     }
 
-    protected static function getRoles() : array
-    {
-        if (auth()->user()->hasRole('super-admin')) {
-            return Role::all()->pluck('name', 'id')->toArray();
-        }
-        else {
-            return Role::where('name', '!=', 'super-admin')->where('name', '!=', 'admin')->get()->pluck('name', 'id')->toArray();
-        }
-
-    }
+//    protected static function getRoles() : array
+//    {
+//        if (auth()->user()->hasRole('super-admin')) {
+//            return Role::all()->pluck('name', 'id')->toArray();
+//        }
+////
+//        return Role::where('name', '!=', 'super-admin')->where('name', '!=', 'admin')->get()->pluck('name', 'id')->toArray();
+////        return [];
+//    }
 
     public static function table(Table $table): Table
     {
@@ -108,12 +111,11 @@ class UserResource extends Resource
                     SoftDeletingScope::class,
                 ]);
         }
-        else {
-//            return parent::getEloquentQuery()->withoutGlobalScopes([
-//                SoftDeletingScope::class,
-//            ])->where('id', '!=', 1);
-            Debugbar::info(User::role('admin'));
-            return User::role('user');
-        }
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])->whereHas('roles', function ($q) {
+                return $q->where('name', '!=', 'super-admin')->where('name', '!=', 'admin');
+            });
     }
 }
