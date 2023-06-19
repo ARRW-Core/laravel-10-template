@@ -50,4 +50,6 @@ class UserResource extends PhpsaUserResource
                     ])->columns(2),
             ]);
     }
+
+
 }

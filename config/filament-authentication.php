@@ -8,7 +8,7 @@ return [
     ],
     'resources'     => [
         'UserResource'       => \App\Filament\Resources\UserResource::class,
-        'RoleResource'       => \Phpsa\FilamentAuthentication\Resources\RoleResource::class,
+        'RoleResource'       => \App\Filament\Resources\RoleResource::class,
         'PermissionResource' => \Phpsa\FilamentAuthentication\Resources\PermissionResource::class,
     ],
     'pages'         => [
