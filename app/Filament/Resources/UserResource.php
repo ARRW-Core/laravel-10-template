@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Select;
@@ -69,6 +70,9 @@ class UserResource extends Resource
             ]);
     }
 
+    /**
+     * @throws \Exception
+     */
     public static function table(Table $table): Table
     {
         return $table
@@ -85,15 +89,20 @@ class UserResource extends Resource
                         'danger' => fn ($state): bool => $state === null,
                     ])
                     ->label(''),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Role'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->dateTime('y-m-d H:i'),
+                    ->dateTime('y-m-d H:i')
+                    ->hidden(! auth()->user()->hasRole('super_admin')),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
-                    ->dateTime('y-m-d H:i'),
+                    ->dateTime('y-m-d H:i')
+                    ->hidden(! auth()->user()->hasRole('super_admin')),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
-                    ->dateTime('y-m-d H:i'),
+                    ->dateTime('y-m-d H:i')
+                    ->hidden(! auth()->user()->hasRole('super_admin')),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -104,10 +113,12 @@ class UserResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ForceDeleteAction::make()->hidden(! auth()->user()->hasRole('super_admin')),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-                Tables\Actions\ForceDeleteBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make()->hidden(! auth()->user()->hasRole('super_admin')),
                 Tables\Actions\RestoreBulkAction::make(),
             ])->prependActions([
                 Impersonate::make(), // <---
