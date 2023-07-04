@@ -47,7 +47,7 @@ class PermissionResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime(),
+                    ->dateTime()->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

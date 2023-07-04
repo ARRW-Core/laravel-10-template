@@ -102,7 +102,8 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->dateTime('y-m-d H:i')
-                    ->hidden(! auth()->user()->hasRole('super_admin')),
+                    ->hidden(! auth()->user()->hasRole('super_admin'))
+                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -113,13 +114,13 @@ class UserResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-                Tables\Actions\ForceDeleteAction::make()->hidden(! auth()->user()->hasRole('super_admin')),
-                Tables\Actions\RestoreAction::make(),
+                Tables\Actions\ForceDeleteAction::make()->hidden(! auth()->user()->hasRole('super_admin'))->visible(fn ($record) => $record->trashed()),
+                Tables\Actions\RestoreAction::make()->visible(fn ($record) => $record->trashed()),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-                Tables\Actions\ForceDeleteBulkAction::make()->hidden(! auth()->user()->hasRole('super_admin')),
-                Tables\Actions\RestoreBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make()->hidden(! auth()->user()->hasRole('super_admin'))->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                Tables\Actions\RestoreBulkAction::make()->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
             ])->prependActions([
                 Impersonate::make(), // <---
             ]);

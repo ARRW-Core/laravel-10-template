@@ -47,7 +47,8 @@ class RoleResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -65,9 +66,9 @@ class RoleResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
                 Tables\Actions\ForceDeleteBulkAction::make()
                     ->hidden(!auth()->user()->hasRole('super-admin'))
-                    ->visible(fn ($records) => $records->contains(fn ($record) => $record->trashed())),
+                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
                 Tables\Actions\RestoreBulkAction::make()
-                    ->visible(fn ($records) => $records->contains(fn ($record) => $record->trashed())),
+                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
             ]);
     }
 
