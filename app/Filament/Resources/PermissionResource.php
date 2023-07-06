@@ -47,7 +47,7 @@ class PermissionResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ->dateTime(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -64,7 +64,7 @@ class PermissionResource extends Resource
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
                 Tables\Actions\ForceDeleteBulkAction::make()->hidden(!auth()->user()->hasRole('super-admin'))
-                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ,
                 Tables\Actions\RestoreBulkAction::make(),
             ]);
     }

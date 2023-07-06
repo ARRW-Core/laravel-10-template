@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('user_infos', function (Blueprint $table) {
             $table->foreignId('id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('phone_number', 20)->nullable();
+            $table->string('address')->nullable();
+            $table->string('country', 2)->nullable();
+            $table->string('avatar')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
             $table->softDeletes('deleted_at', 0);
 

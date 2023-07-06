@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource\RelationManagers;
 use App\Models\Role;
+use Barryvdh\Debugbar\Facades\Debugbar;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -43,12 +44,14 @@ class RoleResource extends Resource
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('guard_name'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
-                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -66,9 +69,9 @@ class RoleResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
                 Tables\Actions\ForceDeleteBulkAction::make()
                     ->hidden(!auth()->user()->hasRole('super-admin'))
-                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ,
                 Tables\Actions\RestoreBulkAction::make()
-                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ,
             ]);
     }
 
@@ -76,6 +79,7 @@ class RoleResource extends Resource
     {
         return [
             //
+            RelationManagers\PermissionsRelationManager::class
         ];
     }
 

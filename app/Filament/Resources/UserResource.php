@@ -60,12 +60,21 @@ class UserResource extends Resource
                             ->multiple()
                             ->relationship('roles', 'name', function (Builder $query) {
                                 $query->orderBy('id');
-                                if (auth()->user()->hasRole('super_admin'))
+                                if (auth()->user()?->hasRole('super_admin'))
                                     return $query;
                                 return $query->where('name', '!=', 'super_admin')->where('name', '!=', 'admin');
                             })
                             ->preload()
                             ->required(fn ($component, $get, $livewire, $model, $record, $set, $state) => $record === null),
+                        Select::make('permissions')
+                            ->multiple()
+                            ->relationship('permissions', 'name', function (Builder $query) {
+                                $query->orderBy('id');
+                                return $query;
+                            })
+                            ->preload()
+                            ->label('Direct Permissions')
+                            ->visible(auth()->user()?->hasRole('super_admin'))
                     ])->columns(2),
             ]);
     }
@@ -90,20 +99,25 @@ class UserResource extends Resource
                     ])
                     ->label(''),
                 Tables\Columns\TextColumn::make('roles.name')
-                    ->label('Role'),
+                    ->label('Roles'),
+                Tables\Columns\TextColumn::make('permissions.name')
+                    ->label('Direct Permissions')
+                    ->visible(auth()->user()?->hasRole('super_admin')),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->dateTime('y-m-d H:i')
-                    ->hidden(! auth()->user()->hasRole('super_admin')),
+                    ->visible(auth()->user()?->hasRole('super_admin'))
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->dateTime('y-m-d H:i')
-                    ->hidden(! auth()->user()->hasRole('super_admin')),
+                    ->visible(auth()->user()?->hasRole('super_admin'))
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->dateTime('y-m-d H:i')
-                    ->hidden(! auth()->user()->hasRole('super_admin'))
-                    ->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                    ->visible(auth()->user()?->hasRole('super_admin'))
+                    ->toggleable(auth()->user()?->hasRole('super_admin'),true),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -119,8 +133,8 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-                Tables\Actions\ForceDeleteBulkAction::make()->hidden(! auth()->user()->hasRole('super_admin'))->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
-                Tables\Actions\RestoreBulkAction::make()->visible(fn ($records) => $records->whereNotNull('deleted_at')->count() > 0),
+                Tables\Actions\ForceDeleteBulkAction::make()->hidden(! auth()->user()->hasRole('super_admin')),
+                Tables\Actions\RestoreBulkAction::make(),
             ])->prependActions([
                 Impersonate::make(), // <---
             ]);
