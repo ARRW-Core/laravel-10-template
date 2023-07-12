@@ -17,11 +17,11 @@ return new class extends Migration
             $table->string('last_name')->nullable();
             $table->string('phone_number', 20)->nullable();
             $table->string('address')->nullable();
-            $table->string('country', 2)->nullable();
+            $table->string('country')->nullable();
             $table->string('avatar')->nullable();
             $table->foreignId('department_id')->nullable()->constrained('departments')->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
-            $table->softDeletes('deleted_at', 0);
+            $table->softDeletes();
 
         });
     }
